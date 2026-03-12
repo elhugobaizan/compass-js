@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model accounts {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name              String
+  account_category  String
+  currency          String    @default("ARS")
+  institution_name  String?
+  identifier        String?
+  alias             String?
+  interest_rate     Decimal?  @db.Decimal
+  opening_balance   Decimal?  @db.Decimal
+  opening_date      DateTime? @db.Date
+  is_payment_method Boolean?  @default(false)
+  logo              String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @db.Timestamp(6)
+
+  @@index([account_category], map: "idx_accounts_category")
+}
+
+model bills {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String
+  due_day    String?
+  debt       Decimal?  @db.Decimal
+  notes      String?
+  logo       String?
+  url        String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model crypto_holdings {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name            String
+  symbol          String
+  quantity        Decimal?  @db.Decimal
+  price_today     Decimal?  @db.Decimal
+  wallet_mongo_id String?
+  logo            String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model fixed_deposits {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name          String
+  start_date    DateTime? @db.Date
+  maturity_date DateTime? @db.Date
+  capital       Decimal?  @db.Decimal
+  tna           Decimal?  @db.Decimal
+  bank_mongo_id String?
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model investments {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String
+  capital    Decimal?  @db.Decimal
+  currency   Int?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model settings {
+  key   String   @id
+  value Decimal? @db.Decimal
+}
+
+model snapshots {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  year          Int
+  month         Int
+  period        String?
+  net_worth_ars Decimal?  @db.Decimal
+  net_worth_usd Decimal?  @db.Decimal
+  liquidity     Decimal?  @db.Decimal
+  investments   Decimal?  @db.Decimal
+  debt          Decimal?  @db.Decimal
+  exchange_rate Decimal?  @db.Decimal
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([year, month], map: "idx_snapshot_period")
+}
+
+model test_table {
+  id   Int     @id @default(autoincrement())
+  name String?
+}
+
+model transaction_types {
+  id   Int    @id
+  name String
+}
+
+model transactions {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  concept    String?
+  date       DateTime? @db.Date
+  amount     Decimal?  @db.Decimal
+  type       Int?
+  code       Int?
+  location   String?
+  updated_at DateTime? @db.Timestamp(6)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
