@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -7,63 +8,118 @@ datasource db {
 }
 
 model accounts {
-  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String
-  account_category  String
+  account_type      String
+  account_group_id  Int
   currency          String    @default("ARS")
-  institution_name  String?
+  institution       String?
   identifier        String?
   alias             String?
-  interest_rate     Decimal?  @db.Decimal
   opening_balance   Decimal?  @db.Decimal
   opening_date      DateTime? @db.Date
-  is_payment_method Boolean?  @default(false)
-  logo              String?
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  updated_at        DateTime? @db.Timestamp(6)
+  interest_rate     Decimal?  @db.Decimal
+  is_payment_method Boolean   @default(false)
+  logo              String?   @db.VarChar
+  display_order     Int?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime?
+  deleted_at        DateTime?
 
-  @@index([account_category], map: "idx_accounts_category")
+  assets       assets[]
+  transactions transactions[]
+
+  account_group account_groups @relation(fields: [account_group_id], references: [id])
+  bills         bills[]
+
+  @@unique([name, institution])
+  @@index([currency])
+}
+
+model categories {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  type         String
+  created_at   DateTime       @default(now())
+  updated_at   DateTime?
+  deleted_at   DateTime?
+  transactions transactions[]
+
+  @@unique([name, type])
+}
+
+model transactions {
+  id             String      @id @default(uuid()) @db.Uuid
+  concept        String?
+  date           DateTime
+  amount         Decimal     @db.Decimal
+  account_id     String      @db.Uuid
+  category_id    String?     @db.Uuid
+  type_id        Int
+  transfer_group String?
+  location       String?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime?
+  deleted_at     DateTime?
+  account        accounts    @relation(fields: [account_id], references: [id])
+  category       categories? @relation(fields: [category_id], references: [id])
+
+  @@index([account_id], map: "idx_transactions_account")
+  @@index([date], map: "idx_transactions_date")
+  @@index([transfer_group])
+}
+
+model assets {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String    @db.Uuid
+  name       String
+  symbol     String?
+  asset_type String
+  quantity   Decimal?  @db.Decimal
+  price      Decimal?  @db.Decimal
+  capital    Decimal?  @db.Decimal
+  interest   Decimal?  @db.Decimal
+  start_date DateTime? @db.Date
+  maturity   DateTime? @db.Date
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+  deleted_at DateTime?
+  account    accounts  @relation(fields: [account_id], references: [id])
+
+  @@index([account_id], map: "idx_assets_account")
+  @@index([asset_type])
 }
 
 model bills {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
   name       String
-  due_day    String?
-  debt       Decimal?  @db.Decimal
+  due_day    Int?
+  amount     Decimal?  @db.Decimal
+  account_id String?   @db.Uuid
   notes      String?
   logo       String?
   url        String?
-  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+  deleted_at DateTime?
+
+  account accounts? @relation(fields: [account_id], references: [id])
 }
 
-model crypto_holdings {
-  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name            String
-  symbol          String
-  quantity        Decimal?  @db.Decimal
-  price_today     Decimal?  @db.Decimal
-  wallet_mongo_id String?
-  logo            String?
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-}
+model snapshots {
+  id            String   @id @default(uuid()) @db.Uuid
+  year          Int
+  month         Int
+  period        String?
+  net_worth_ars Decimal? @db.Decimal
+  net_worth_usd Decimal? @db.Decimal
+  liquidity     Decimal? @db.Decimal
+  investments   Decimal? @db.Decimal
+  debt          Decimal? @db.Decimal
+  exchange_rate Decimal? @db.Decimal
+  created_at    DateTime @default(now())
 
-model fixed_deposits {
-  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name          String
-  start_date    DateTime? @db.Date
-  maturity_date DateTime? @db.Date
-  capital       Decimal?  @db.Decimal
-  tna           Decimal?  @db.Decimal
-  bank_mongo_id String?
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model investments {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name       String
-  capital    Decimal?  @db.Decimal
-  currency   Int?
-  created_at DateTime? @default(now()) @db.Timestamp(6)
+  @@unique([year, month])
 }
 
 model settings {
@@ -71,40 +127,13 @@ model settings {
   value Decimal? @db.Decimal
 }
 
-model snapshots {
-  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  year          Int
-  month         Int
-  period        String?
-  net_worth_ars Decimal?  @db.Decimal
-  net_worth_usd Decimal?  @db.Decimal
-  liquidity     Decimal?  @db.Decimal
-  investments   Decimal?  @db.Decimal
-  debt          Decimal?  @db.Decimal
-  exchange_rate Decimal?  @db.Decimal
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-
-  @@unique([year, month], map: "idx_snapshot_period")
-}
-
-model test_table {
-  id   Int     @id @default(autoincrement())
-  name String?
-}
-
 model transaction_types {
   id   Int    @id
   name String
 }
 
-model transactions {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  concept    String?
-  date       DateTime? @db.Date
-  amount     Decimal?  @db.Decimal
-  type       Int?
-  code       Int?
-  location   String?
-  updated_at DateTime? @db.Timestamp(6)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
+model account_groups {
+  id       Int        @id(map: "account_groups_pk")
+  name     String     @db.VarChar
+  accounts accounts[]
 }
