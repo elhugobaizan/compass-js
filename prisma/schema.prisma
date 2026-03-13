@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -11,7 +10,7 @@ model accounts {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String
   account_type      String
-  account_group_id  Int
+  account_group_id  String    @db.Uuid
   currency          String    @default("ARS")
   institution       String?
   identifier        String?
@@ -37,7 +36,7 @@ model accounts {
 }
 
 model categories {
-  id           String         @id @default(uuid()) @db.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
   type         String
   created_at   DateTime       @default(now())
@@ -49,20 +48,21 @@ model categories {
 }
 
 model transactions {
-  id             String      @id @default(uuid()) @db.Uuid
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   concept        String?
   date           DateTime
   amount         Decimal     @db.Decimal
   account_id     String      @db.Uuid
-  category_id    String?     @db.Uuid
-  type_id        Int
+  category_id    String      @db.Uuid
+  type_id        String      @db.Uuid
   transfer_group String?
   location       String?
   created_at     DateTime    @default(now())
-  updated_at     DateTime?
+  updated_at     DateTime    @default(now())
   deleted_at     DateTime?
   account        accounts    @relation(fields: [account_id], references: [id])
-  category       categories? @relation(fields: [category_id], references: [id])
+  category       categories @relation(fields: [category_id], references: [id])
+  type           transaction_types @relation(fields: [type_id], references: [id])
 
   @@index([account_id], map: "idx_transactions_account")
   @@index([date], map: "idx_transactions_date")
@@ -82,7 +82,7 @@ model assets {
   start_date DateTime? @db.Date
   maturity   DateTime? @db.Date
   created_at DateTime  @default(now())
-  updated_at DateTime?
+  updated_at DateTime  @default(now())
   deleted_at DateTime?
   account    accounts  @relation(fields: [account_id], references: [id])
 
@@ -91,7 +91,7 @@ model assets {
 }
 
 model bills {
-  id         String    @id @default(uuid()) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String
   due_day    Int?
   amount     Decimal?  @db.Decimal
@@ -100,14 +100,14 @@ model bills {
   logo       String?
   url        String?
   created_at DateTime  @default(now())
-  updated_at DateTime?
+  updated_at DateTime  @default(now())
   deleted_at DateTime?
 
   account accounts? @relation(fields: [account_id], references: [id])
 }
 
 model snapshots {
-  id            String   @id @default(uuid()) @db.Uuid
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   year          Int
   month         Int
   period        String?
@@ -123,17 +123,20 @@ model snapshots {
 }
 
 model settings {
-  key   String   @id
+  id    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key   String
   value Decimal? @db.Decimal
 }
 
 model transaction_types {
-  id   Int    @id
+  id   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String
+
+  transactions transactions[]
 }
 
 model account_groups {
-  id       Int        @id(map: "account_groups_pk")
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name     String     @db.VarChar
   accounts accounts[]
 }
