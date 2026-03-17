@@ -12,9 +12,13 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error(`CORS no permitido para origin: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -22,8 +26,16 @@ const corsOptions = {
   credentials: true
 };
 
+// CORS primero
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+
+// Manejo explícito de preflight sin usar app.options('*')
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,21 +45,21 @@ app.get('/', (req, res) => {
 });
 
 const models = [
-  "account_groups",
-  "accounts",
-  "assets",
-  "bills",
-  "categories",
-  "settings",
-  "snapshots",
-  "transaction_types",
-  "transactions"
+  'account_groups',
+  'accounts',
+  'assets',
+  'bills',
+  'categories',
+  'settings',
+  'snapshots',
+  'transaction_types',
+  'transactions'
 ];
 
 models.forEach(model => {
   app.use(`/${model}`, generateUltimateCRUDRouter(model, {
     include: undefined,
-    protectFields: ["deleted_at", "modified_at", "created_at"]
+    protectFields: ['deleted_at', 'modified_at', 'created_at']
   }));
 });
 
