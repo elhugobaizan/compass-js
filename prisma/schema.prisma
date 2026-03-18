@@ -7,36 +7,34 @@ datasource db {
 }
 
 model accounts {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String
   account_type      String
-  account_group_id  String    @db.Uuid
-  currency          String    @default("ARS")
+  account_group_id  String         @db.Uuid
+  currency          String         @default("ARS")
   institution       String?
   identifier        String?
   alias             String?
-  opening_balance   Decimal?  @db.Decimal
-  opening_date      DateTime? @db.Date
-  interest_rate     Decimal?  @db.Decimal
-  is_payment_method Boolean   @default(false)
-  logo              String?   @db.VarChar
+  opening_balance   Decimal?       @db.Decimal
+  opening_date      DateTime?      @db.Date
+  interest_rate     Decimal?       @db.Decimal
+  is_payment_method Boolean        @default(false)
+  logo              String?        @db.VarChar
   display_order     Int?
-  created_at        DateTime  @default(now())
+  created_at        DateTime       @default(now())
   updated_at        DateTime?
   deleted_at        DateTime?
-
-  assets       assets[]
-  transactions transactions[]
-
-  account_group account_groups @relation(fields: [account_group_id], references: [id])
-  bills         bills[]
+  account_group     account_groups @relation(fields: [account_group_id], references: [id])
+  assets            assets[]
+  bills             bills[]
+  transactions      transactions[]
 
   @@unique([name, institution])
   @@index([currency])
 }
 
 model categories {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
   type         String
   created_at   DateTime       @default(now())
@@ -48,20 +46,20 @@ model categories {
 }
 
 model transactions {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   concept        String?
   date           DateTime
-  amount         Decimal     @db.Decimal
-  account_id     String      @db.Uuid
-  category_id    String      @db.Uuid
-  type_id        String      @db.Uuid
+  amount         Decimal           @db.Decimal
+  account_id     String            @db.Uuid
+  category_id    String            @db.Uuid
+  type_id        String            @db.Uuid
   transfer_group String?
   location       String?
-  created_at     DateTime    @default(now())
-  updated_at     DateTime    @default(now())
+  created_at     DateTime          @default(now())
+  updated_at     DateTime          @default(now())
   deleted_at     DateTime?
-  account        accounts    @relation(fields: [account_id], references: [id])
-  category       categories @relation(fields: [category_id], references: [id])
+  account        accounts          @relation(fields: [account_id], references: [id])
+  category       categories        @relation(fields: [category_id], references: [id])
   type           transaction_types @relation(fields: [type_id], references: [id])
 
   @@index([account_id], map: "idx_transactions_account")
@@ -102,22 +100,22 @@ model bills {
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now())
   deleted_at DateTime?
-
-  account accounts? @relation(fields: [account_id], references: [id])
+  account    accounts? @relation(fields: [account_id], references: [id])
 }
 
 model snapshots {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   year          Int
   month         Int
   period        String?
-  net_worth_ars Decimal? @db.Decimal
-  net_worth_usd Decimal? @db.Decimal
-  liquidity     Decimal? @db.Decimal
-  investments   Decimal? @db.Decimal
-  debt          Decimal? @db.Decimal
-  exchange_rate Decimal? @db.Decimal
-  created_at    DateTime @default(now())
+  net_worth_ars Decimal?  @db.Decimal
+  net_worth_usd Decimal?  @db.Decimal
+  liquidity     Decimal?  @db.Decimal
+  investments   Decimal?  @db.Decimal
+  debt          Decimal?  @db.Decimal
+  exchange_rate Decimal?  @db.Decimal
+  created_at    DateTime  @default(now())
+  deleted_at    DateTime? @db.Timestamp(6)
 
   @@unique([year, month])
 }
@@ -129,9 +127,8 @@ model settings {
 }
 
 model transaction_types {
-  id   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
-
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
   transactions transactions[]
 }
 
