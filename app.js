@@ -26,6 +26,16 @@ const corsOptions = {
   credentials: true
 };
 
+const getIncludedModels = (model) => {
+  if (model === 'accounts') {
+    return { 'account_group': true };
+  }
+  if (model === 'transactions') {
+    return { 'category': true, 'type': true, 'account': true };
+  }
+  return undefined;
+};
+
 // CORS primero
 app.use(cors(corsOptions));
 
@@ -58,7 +68,7 @@ const models = [
 
 models.forEach(model => {
   app.use(`/${model}`, generateUltimateCRUDRouter(model, {
-    include: undefined,
+    include: getIncludedModels(model),
     protectFields: ['deleted_at', 'modified_at', 'created_at']
   }));
 });
