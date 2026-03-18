@@ -31,10 +31,17 @@ export function generateUltimateCRUDRouter(modelName, options) {
     const skip = Number(req.query.skip) || 0;
     const take = Number(req.query.take) || 100;
 
-    const filter = {};
+    let userFilter = {};
     if (req.query.filter) {
-      try { Object.assign(filter, JSON.parse(req.query.filter)); } catch {}
+      try { Object.assign(userFilter, JSON.parse(req.query.filter)); } catch {}
     }
+
+    const filter = {
+      AND: [
+        userFilter,
+        { deleted_at: null }
+      ]
+    };
 
     const data = await model.findMany({ skip, take, where: filter, include: options?.include });
     res.json(data.map((item) => {
