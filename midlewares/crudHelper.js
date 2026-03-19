@@ -86,7 +86,9 @@ export function generateUltimateCRUDRouter(modelName, options) {
     console.log(`Delete ${modelName} with id ${req.params.id}`);
     const deleted = await model.update({ 
       where: { id: req.params.id },
-      deleted_at: new Date() 
+      data: {
+        deleted_at: new Date(),
+      },
     });
     console.log(`${modelName} with id ${req.params.id} deleted with soft delete`);
     res.json(deleted);
