@@ -8,7 +8,8 @@ const port = process.env.PORT || 3001;
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://compass-io-js.vercel.app'
+  'https://compass-io-js.vercel.app',
+  'https://compass-io.vercel.app/'
 ];
 
 const corsOptions = {
