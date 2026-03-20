@@ -84,6 +84,15 @@ export function generateUltimateCRUDRouter(modelName, options) {
   // DELETE /model/:id
   router.delete("/:id", async (req, res) => {
     console.log(`Delete ${modelName} with id ${req.params.id}`);
+    if (modelName === 'accounts') {
+      console.log('Checking if the account has assets...');
+      const assets = await prisma.assets.count({
+        where: {
+          account_id: req.params.id
+        }
+      })
+      if(assets > 0) return res.status(409).json("La cuenta tiene activos asociados.");
+    }
     const deleted = await model.update({ 
       where: { id: req.params.id },
       data: {
