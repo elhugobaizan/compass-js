@@ -33,7 +33,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
 
     let userFilter = {};
     if (req.query.filter) {
-      try { Object.assign(userFilter, JSON.parse(req.query.filter)); } catch {}
+      try { Object.assign(userFilter, JSON.parse(req.query.filter)); } catch { }
     }
 
     const filter = {
@@ -77,7 +77,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
     const parsed = schema.partial().safeParse(req.body);
     if (!parsed.success) return res.status(400).json(parsed.error.format());
     const updated = await model.update({ where: { id: req.params.id }, data: parsed.data });
-    console.log(`${modelName} with id ${created.id} updated`);
+    console.log(`${modelName} with id ${updated.id} updated`);
     res.json(updated);
   });
 
