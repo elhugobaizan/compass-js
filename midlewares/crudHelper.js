@@ -91,7 +91,10 @@ export function generateUltimateCRUDRouter(modelName, options) {
           account_id: req.params.id
         }
       })
-      if(assets > 0) return res.status(409).json("La cuenta tiene activos asociados.");
+      if(assets > 0) {
+        console.log(`${modelName} with id ${req.params.id} NOT deleted because has active assets`);
+        return res.status(409).json("La cuenta tiene activos asociados.");
+      }
     }
     const deleted = await model.update({ 
       where: { id: req.params.id },
