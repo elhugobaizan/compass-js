@@ -1,0 +1,146 @@
+[
+  {
+    "concept": "Central panamericana",
+    "date": "2025-12-02",
+    "amount": "8655",
+    "category_id": 2,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Moretti - fiambres",
+    "date": "2025-12-02",
+    "amount": "13400",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Crujen",
+    "date": "2025-12-02",
+    "amount": "9500",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Milas",
+    "date": "2025-12-03",
+    "amount": "10000",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Chango Más",
+    "date": "2025-12-04",
+    "amount": "23000",
+    "category_id": 6,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Central guaymallen",
+    "date": "2025-12-04",
+    "amount": "11500",
+    "category_id": 2,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Central Beltrán",
+    "date": "2025-12-05",
+    "amount": "8655",
+    "category_id": 2,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Sube",
+    "date": "2025-12-05",
+    "amount": "3000",
+    "category_id": 5,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Central Balcarce",
+    "date": "2025-12-05",
+    "amount": "8655",
+    "category_id": 2,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Lomo peYa",
+    "date": "2025-12-06",
+    "amount": "26000",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Easy (focos)",
+    "date": "2025-12-06",
+    "amount": "3000",
+    "category_id": 6,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Chango Más",
+    "date": "2025-12-08",
+    "amount": "14240",
+    "category_id": 6,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Torta padre",
+    "date": "2025-12-13",
+    "amount": "35900",
+    "category_id": 4,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Almuerzo",
+    "date": "2025-12-14",
+    "amount": "16000",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "Milas",
+    "date": "2025-12-14",
+    "amount": "17600",
+    "category_id": 1,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  },
+  {
+    "concept": "CompuMarian",
+    "date": "2025-12-15",
+    "amount": "279999",
+    "category_id": 6,
+    "type_id": 1,
+    "account_id": "",
+    "location": ""
+  }
+]
