@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { generateUltimateCRUDRouter } from './midlewares/crudHelper.js';
-import { prisma } from "../db/prisma.js";
+import { prisma } from "./db/prisma.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
