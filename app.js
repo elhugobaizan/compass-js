@@ -93,41 +93,46 @@ app.post(`/transfers`, async (req, res) => {
   const transferGroup = crypto.randomUUID();
 
 
-  const result = await prisma.$transaction(async (tx) => {
-    const originTransaction = await tx.transactions.create({
+  const result = await prisma.$transaction([
+    prisma.transactions.create({
       data: {
         concept: concept || "Transferencia enviada",
         date: new Date(date),
         amount,
-        account_id: origin_account_id,
-        category_id: null,
-        type_id: "1e49a6a7-3519-4e5b-aa4b-62a4d11a7a11",
         transfer_group: transferGroup,
         location: location || null,
+        account: {
+          connect: { id: origin_account_id }
+        },
+        category: {
+          connect: { id: "ec2949e0-30ae-41f4-9253-db126957f2ae" }
+        },
+        type: {
+          connect: {  id: "1e49a6a7-3519-4e5b-aa4b-62a4d11a7a11" }
+        }
       },
-    });
-
-    const destinationTransaction = await tx.transactions.create({
+    }),
+    prisma.transactions.create({
       data: {
         concept: concept || "Transferencia recibida",
         date: new Date(date),
         amount,
-        account_id: destination_account_id,
-        category_id: null,
-        type_id: "ef0f7192-c4b3-4d7c-88ef-0d451a77baea",
         transfer_group: transferGroup,
         location: location || null,
+        account: {
+          connect: { id: destination_account_id }
+        },
+        category: {
+          connect: { id: "ec2949e0-30ae-41f4-9253-db126957f2ae" }
+        },
+        type: {
+          connect: { id: "ef0f7192-c4b3-4d7c-88ef-0d451a77baea" }
+        }
       },
-    });
-
-    return {
-      transfer_group: transferGroup,
-      origin_transaction: originTransaction,
-      destination_transaction: destinationTransaction,
-    };
-  });
-
-  res.status(201).json(result);
+    })
+    ]);
+        
+    res.status(201).json(result);
 });
 
 app.listen(port, () => {
