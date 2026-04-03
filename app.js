@@ -35,6 +35,9 @@ const getIncludedModels = (model) => {
   if (model === 'transactions') {
     return { 'category': true, 'type': true, 'account': true };
   }
+  if (model === 'bill_payments') {
+    return { bill: true, transaction: true };
+  }
   return undefined;
 };
 
@@ -61,6 +64,7 @@ const models = [
   'accounts',
   'assets',
   'bills',
+  'bill_payments',
   'categories',
   'settings',
   'snapshots',
@@ -108,7 +112,7 @@ app.post(`/transfers`, async (req, res) => {
           connect: { id: "ec2949e0-30ae-41f4-9253-db126957f2ae" }
         },
         type: {
-          connect: {  id: "1e49a6a7-3519-4e5b-aa4b-62a4d11a7a11" }
+          connect: { id: "1e49a6a7-3519-4e5b-aa4b-62a4d11a7a11" }
         }
       },
     }),
@@ -130,9 +134,9 @@ app.post(`/transfers`, async (req, res) => {
         }
       },
     })
-    ]);
-        
-    res.status(201).json(result);
+  ]);
+
+  res.status(201).json(result);
 });
 
 app.listen(port, () => {

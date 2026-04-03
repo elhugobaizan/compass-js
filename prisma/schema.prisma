@@ -41,6 +41,7 @@ model categories {
   updated_at   DateTime?
   deleted_at   DateTime?
   transactions transactions[]
+  bills        bills[]
 
   @@unique([name, type])
 }
@@ -61,6 +62,8 @@ model transactions {
   account        accounts          @relation(fields: [account_id], references: [id])
   category       categories        @relation(fields: [category_id], references: [id])
   type           transaction_types @relation(fields: [type_id], references: [id])
+
+  bill_payments  bill_payments[]
 
   @@index([account_id], map: "idx_transactions_account")
   @@index([date], map: "idx_transactions_date")
@@ -89,18 +92,56 @@ model assets {
 }
 
 model bills {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  due_day    Int?
-  amount     Decimal?  @db.Decimal
-  account_id String?   @db.Uuid
-  notes      String?
-  logo       String?
-  url        String?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now())
-  deleted_at DateTime?
-  account    accounts? @relation(fields: [account_id], references: [id])
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String
+  provider            String?
+  due_day             Int?
+  default_amount      Decimal?        @db.Decimal
+  account_id          String?         @db.Uuid
+  category_id         String?         @db.Uuid
+  customer_number     String?
+  reference_number    String?
+  notes               String?
+  logo                String?
+  url                 String?
+  is_active           Boolean         @default(true)
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @default(now())
+  deleted_at          DateTime?
+
+  account             accounts?       @relation(fields: [account_id], references: [id])
+  category            categories?     @relation(fields: [category_id], references: [id])
+  bill_payments       bill_payments[]
+
+  @@index([account_id])
+  @@index([category_id])
+  @@index([is_active])
+}
+
+model bill_payments {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bill_id         String        @db.Uuid
+  year            Int
+  month           Int
+  due_date        DateTime?     @db.Date
+  expected_amount Decimal?      @db.Decimal
+  paid_amount     Decimal?      @db.Decimal
+  paid_at         DateTime?
+  status          String        @default("pending")
+  transaction_id  String?       @db.Uuid
+  notes           String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @default(now())
+  deleted_at      DateTime?
+
+  bill            bills         @relation(fields: [bill_id], references: [id])
+  transaction     transactions? @relation(fields: [transaction_id], references: [id])
+
+  @@unique([bill_id, year, month])
+  @@index([status])
+  @@index([due_date])
+  @@index([transaction_id])
+  @@index([year, month])
 }
 
 model snapshots {

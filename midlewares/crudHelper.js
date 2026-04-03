@@ -33,7 +33,30 @@ export function generateUltimateCRUDRouter(modelName, options) {
 
     let userFilter = {};
     if (req.query.filter) {
-      try { Object.assign(userFilter, JSON.parse(req.query.filter)); } catch { }
+      try {
+        Object.assign(userFilter, JSON.parse(req.query.filter));
+      } catch { }
+    }
+
+    if (modelName === "bill_payments") {
+      const year =
+        req.query.year !== undefined ? Number(req.query.year) : undefined;
+      const month =
+        req.query.month !== undefined ? Number(req.query.month) : undefined;
+
+      if (year !== undefined) {
+        if (!Number.isInteger(year)) {
+          return res.status(400).json({ error: "year debe ser un número entero" });
+        }
+        userFilter.year = year;
+      }
+
+      if (month !== undefined) {
+        if (!Number.isInteger(month) || month < 1 || month > 12) {
+          return res.status(400).json({ error: "month debe estar entre 1 y 12" });
+        }
+        userFilter.month = month;
+      }
     }
 
     const filter = {
@@ -43,7 +66,13 @@ export function generateUltimateCRUDRouter(modelName, options) {
       ]
     };
 
-    const data = await model.findMany({ skip, take, where: filter, include: options?.include });
+    const data = await model.findMany({
+      skip,
+      take,
+      where: filter,
+      include: options?.include
+    });
+
     res.json(data.map((item) => {
       if (!options?.protectFields) return item;
       const copy = { ...item };
@@ -91,12 +120,12 @@ export function generateUltimateCRUDRouter(modelName, options) {
           account_id: req.params.id
         }
       })
-      if(assets > 0) {
+      if (assets > 0) {
         console.log(`${modelName} with id ${req.params.id} NOT deleted because has active assets`);
         return res.status(409).json("La cuenta tiene activos asociados.");
       }
     }
-    const deleted = await model.update({ 
+    const deleted = await model.update({
       where: { id: req.params.id },
       data: {
         deleted_at: new Date(),
