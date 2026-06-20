@@ -41,6 +41,13 @@ const getIncludedModels = (model) => {
   return undefined;
 };
 
+const getDefaultOrderBy = (model) => {
+  if (model === 'transactions') {
+    return { date: 'desc' };
+  }
+  return undefined;
+};
+
 // CORS primero
 app.use(cors(corsOptions));
 
@@ -75,6 +82,7 @@ const models = [
 models.forEach(model => {
   app.use(`/${model}`, generateUltimateCRUDRouter(model, {
     include: getIncludedModels(model),
+    defaultOrderBy: getDefaultOrderBy(model),
     protectFields: ['deleted_at', 'modified_at', 'created_at']
   }));
 });

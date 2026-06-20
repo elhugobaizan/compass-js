@@ -26,6 +26,14 @@ export function generateUltimateCRUDRouter(modelName, options) {
 
   const schema = options?.zodSchema || makeZodSchema(modelFields, options?.protectFields || []);
 
+  const handleError = (res, action, err) => {
+    console.error(`Error al ${action} ${modelName}:`, err);
+    res.status(500).json({
+      error: `No se pudo ${action} ${modelName}`,
+      detail: err?.message ?? String(err),
+    });
+  };
+
   // GET /model?skip=0&take=100&filter[field]=value
   router.get("/", async (req, res) => {
     const skip = Number(req.query.skip) || 0;
@@ -66,28 +74,44 @@ export function generateUltimateCRUDRouter(modelName, options) {
       ]
     };
 
-    const data = await model.findMany({
-      skip,
-      take,
-      where: filter,
-      include: options?.include
-    });
+    let orderBy = options?.defaultOrderBy;
+    if (req.query.orderBy) {
+      try {
+        orderBy = JSON.parse(req.query.orderBy);
+      } catch { }
+    }
 
-    res.json(data.map((item) => {
-      if (!options?.protectFields) return item;
-      const copy = { ...item };
-      options.protectFields.forEach(f => delete copy[f]);
-      return copy;
-    }));
+    try {
+      const data = await model.findMany({
+        skip,
+        take,
+        where: filter,
+        orderBy,
+        include: options?.include
+      });
+
+      res.json(data.map((item) => {
+        if (!options?.protectFields) return item;
+        const copy = { ...item };
+        options.protectFields.forEach(f => delete copy[f]);
+        return copy;
+      }));
+    } catch (err) {
+      handleError(res, "listar", err);
+    }
   });
 
   // GET /model/:id
   router.get("/:id", async (req, res) => {
     console.log(`Read ${modelName} with id ${req.params.id}`);
-    const data = await model.findUnique({ where: { id: req.params.id }, include: options?.include });
-    if (!data) return res.status(404).json({ error: "Not found" });
-    console.log(`${modelName} with id ${created.id} found`);
-    res.json(data);
+    try {
+      const data = await model.findUnique({ where: { id: req.params.id }, include: options?.include });
+      if (!data) return res.status(404).json({ error: "Not found" });
+      console.log(`${modelName} with id ${data.id} found`);
+      res.json(data);
+    } catch (err) {
+      handleError(res, "obtener", err);
+    }
   });
 
   // POST /model
@@ -95,9 +119,13 @@ export function generateUltimateCRUDRouter(modelName, options) {
     console.log(`Create new ${modelName}`);
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json(parsed.error.format());
-    const created = await model.create({ data: parsed.data });
-    console.log(`${modelName} created with id ${created.id}`);
-    res.json(created);
+    try {
+      const created = await model.create({ data: parsed.data });
+      console.log(`${modelName} created with id ${created.id}`);
+      res.json(created);
+    } catch (err) {
+      handleError(res, "crear", err);
+    }
   });
 
   // PATCH /model/:id
@@ -105,34 +133,42 @@ export function generateUltimateCRUDRouter(modelName, options) {
     console.log(`Read ${modelName} with id ${req.params.id}`);
     const parsed = schema.partial().safeParse(req.body);
     if (!parsed.success) return res.status(400).json(parsed.error.format());
-    const updated = await model.update({ where: { id: req.params.id }, data: parsed.data });
-    console.log(`${modelName} with id ${updated.id} updated`);
-    res.json(updated);
+    try {
+      const updated = await model.update({ where: { id: req.params.id }, data: parsed.data });
+      console.log(`${modelName} with id ${updated.id} updated`);
+      res.json(updated);
+    } catch (err) {
+      handleError(res, "actualizar", err);
+    }
   });
 
   // DELETE /model/:id
   router.delete("/:id", async (req, res) => {
     console.log(`Delete ${modelName} with id ${req.params.id}`);
-    if (modelName === 'accounts') {
-      console.log('Checking if the account has assets...');
-      const assets = await prisma.assets.count({
-        where: {
-          account_id: req.params.id
+    try {
+      if (modelName === 'accounts') {
+        console.log('Checking if the account has assets...');
+        const assets = await prisma.assets.count({
+          where: {
+            account_id: req.params.id
+          }
+        })
+        if (assets > 0) {
+          console.log(`${modelName} with id ${req.params.id} NOT deleted because has active assets`);
+          return res.status(409).json("La cuenta tiene activos asociados.");
         }
-      })
-      if (assets > 0) {
-        console.log(`${modelName} with id ${req.params.id} NOT deleted because has active assets`);
-        return res.status(409).json("La cuenta tiene activos asociados.");
       }
+      const deleted = await model.update({
+        where: { id: req.params.id },
+        data: {
+          deleted_at: new Date(),
+        },
+      });
+      console.log(`${modelName} with id ${req.params.id} deleted with soft delete`);
+      res.json(deleted);
+    } catch (err) {
+      handleError(res, "eliminar", err);
     }
-    const deleted = await model.update({
-      where: { id: req.params.id },
-      data: {
-        deleted_at: new Date(),
-      },
-    });
-    console.log(`${modelName} with id ${req.params.id} deleted with soft delete`);
-    res.json(deleted);
   });
 
   return router;

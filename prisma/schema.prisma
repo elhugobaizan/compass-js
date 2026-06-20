@@ -52,7 +52,7 @@ model transactions {
   date           DateTime
   amount         Decimal           @db.Decimal
   account_id     String            @db.Uuid
-  category_id    String            @db.Uuid
+  category_id    String?           @db.Uuid
   type_id        String            @db.Uuid
   transfer_group String?
   location       String?
@@ -60,7 +60,7 @@ model transactions {
   updated_at     DateTime          @default(now())
   deleted_at     DateTime?
   account        accounts          @relation(fields: [account_id], references: [id])
-  category       categories        @relation(fields: [category_id], references: [id])
+  category       categories?       @relation(fields: [category_id], references: [id])
   type           transaction_types @relation(fields: [type_id], references: [id])
 
   bill_payments  bill_payments[]
