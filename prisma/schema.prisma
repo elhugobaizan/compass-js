@@ -22,10 +22,11 @@ model accounts {
   logo              String?        @db.VarChar
   display_order     Int?
   created_at        DateTime       @default(now())
-  updated_at        DateTime?
+  updated_at        DateTime?      @db.Timestamp(6)
   deleted_at        DateTime?
   account_group     account_groups @relation(fields: [account_group_id], references: [id])
-  assets            assets[]
+  assets            assets[] @relation("AssetAccount")
+  origin_assets     assets[] @relation("AssetOriginAccount")
   bills             bills[]
   transactions      transactions[]
 
@@ -38,7 +39,7 @@ model categories {
   name         String
   type         String
   created_at   DateTime       @default(now())
-  updated_at   DateTime?
+  updated_at   DateTime?      @db.Timestamp(6)
   deleted_at   DateTime?
   transactions transactions[]
   bills        bills[]
@@ -71,21 +72,23 @@ model transactions {
 }
 
 model assets {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id String    @db.Uuid
-  name       String
-  symbol     String?
-  asset_type String
-  quantity   Decimal?  @db.Decimal
-  price      Decimal?  @db.Decimal
-  capital    Decimal?  @db.Decimal
-  interest   Decimal?  @db.Decimal
-  start_date DateTime? @db.Date
-  maturity   DateTime? @db.Date
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now())
-  deleted_at DateTime?
-  account    accounts  @relation(fields: [account_id], references: [id])
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id         String    @db.Uuid
+  origin_account_id  String?   @db.Uuid
+  name               String
+  symbol             String?
+  asset_type         String
+  quantity           Decimal?  @db.Decimal
+  price              Decimal?  @db.Decimal
+  capital            Decimal?  @db.Decimal
+  interest           Decimal?  @db.Decimal
+  start_date         DateTime? @db.Date
+  maturity           DateTime? @db.Date
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @default(now())
+  deleted_at         DateTime?
+  account            accounts  @relation("AssetAccount", fields: [account_id], references: [id])
+  origin_account     accounts? @relation("AssetOriginAccount", fields: [origin_account_id], references: [id])
 
   @@index([account_id], map: "idx_assets_account")
   @@index([asset_type])

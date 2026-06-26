@@ -134,7 +134,9 @@ export function generateUltimateCRUDRouter(modelName, options) {
     const parsed = schema.partial().safeParse(req.body);
     if (!parsed.success) return res.status(400).json(parsed.error.format());
     try {
-      const updated = await model.update({ where: { id: req.params.id }, data: parsed.data });
+      const now = new Date();
+      const updated = await model.update({ where: { id: req.params.id }, data: { ...parsed.data, updated_at: now } });
+      console.log(`updated_at returned by Prisma: ${updated.updated_at?.toISOString?.() ?? updated.updated_at}`);
       console.log(`${modelName} with id ${updated.id} updated`);
       res.json(updated);
     } catch (err) {
