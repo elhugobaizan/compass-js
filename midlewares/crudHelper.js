@@ -135,6 +135,16 @@ export function generateUltimateCRUDRouter(modelName, options) {
     if (!parsed.success) return res.status(400).json(parsed.error.format());
     try {
       const now = new Date();
+      // settings se identifica por `key` (no es campo unique), así que usamos updateMany + findFirst
+      if (modelName === "settings") {
+        await model.updateMany({
+          where: { key: req.params.id },
+          data: { ...parsed.data, updated_at: now },
+        });
+        const updated = await model.findFirst({ where: { key: req.params.id } });
+        console.log(`setting with key ${req.params.id} updated`);
+        return res.json(updated);
+      }
       const updated = await model.update({ where: { id: req.params.id }, data: { ...parsed.data, updated_at: now } });
       console.log(`updated_at returned by Prisma: ${updated.updated_at?.toISOString?.() ?? updated.updated_at}`);
       console.log(`${modelName} with id ${updated.id} updated`);
