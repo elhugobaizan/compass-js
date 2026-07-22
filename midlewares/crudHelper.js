@@ -145,7 +145,22 @@ export function generateUltimateCRUDRouter(modelName, options) {
         console.log(`setting with key ${req.params.id} updated`);
         return res.json(updated);
       }
-      const updated = await model.update({ where: { id: req.params.id }, data: { ...parsed.data, updated_at: now } });
+      // En accounts, updated_at representa la fecha de referencia del saldo:
+      // solo debe avanzar cuando cambia el opening_balance (no al editar TNA, nombre, etc.)
+      let touchUpdatedAt = true;
+      if (modelName === "accounts") {
+        const current = await model.findUnique({ where: { id: req.params.id } });
+        const incoming = parsed.data.opening_balance;
+        const balanceChanged =
+          incoming !== undefined && Number(incoming) !== Number(current?.opening_balance);
+        touchUpdatedAt = balanceChanged;
+      }
+
+      const data = touchUpdatedAt
+        ? { ...parsed.data, updated_at: now }
+        : { ...parsed.data };
+
+      const updated = await model.update({ where: { id: req.params.id }, data });
       console.log(`updated_at returned by Prisma: ${updated.updated_at?.toISOString?.() ?? updated.updated_at}`);
       console.log(`${modelName} with id ${updated.id} updated`);
       res.json(updated);
