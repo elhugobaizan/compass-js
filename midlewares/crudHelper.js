@@ -137,12 +137,20 @@ export function generateUltimateCRUDRouter(modelName, options) {
       const now = new Date();
       // settings se identifica por `key` (no es campo unique), así que usamos updateMany + findFirst
       if (modelName === "settings") {
-        await model.updateMany({
-          where: { key: req.params.id },
-          data: { ...parsed.data, updated_at: now },
-        });
+        // upsert por `key` (no es campo unique): si existe se actualiza, si no se crea
+        const existing = await model.findFirst({ where: { key: req.params.id } });
+        if (existing) {
+          await model.update({
+            where: { id: existing.id },
+            data: { ...parsed.data, updated_at: now },
+          });
+        } else {
+          await model.create({
+            data: { key: req.params.id, ...parsed.data, updated_at: now },
+          });
+        }
         const updated = await model.findFirst({ where: { key: req.params.id } });
-        console.log(`setting with key ${req.params.id} updated`);
+        console.log(`setting with key ${req.params.id} upserted`);
         return res.json(updated);
       }
       // En accounts, updated_at representa la fecha de referencia del saldo:
