@@ -104,12 +104,19 @@ app.post(`/transfers`, async (req, res) => {
 
   const transferGroup = crypto.randomUUID();
 
+  // La columna es `timestamp without time zone`: pasar un objeto Date hace que el
+  // driver escriba la hora local (corre el día -3h). Mandamos el ISO en UTC como
+  // string, igual que el CRUD de transactions.
+  const transferDate =
+    typeof date === "string" && date.length === 10
+      ? `${date}T00:00:00.000Z`
+      : date;
 
   const result = await prisma.$transaction([
     prisma.transactions.create({
       data: {
         concept: concept || "Transferencia enviada",
-        date: new Date(date),
+        date: transferDate,
         amount,
         transfer_group: transferGroup,
         location: location || null,
@@ -127,7 +134,7 @@ app.post(`/transfers`, async (req, res) => {
     prisma.transactions.create({
       data: {
         concept: concept || "Transferencia recibida",
-        date: new Date(date),
+        date: transferDate,
         amount,
         transfer_group: transferGroup,
         location: location || null,
