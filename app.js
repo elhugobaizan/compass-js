@@ -33,7 +33,7 @@ const getIncludedModels = (model) => {
     return { 'account_group': true };
   }
   if (model === 'transactions') {
-    return { 'category': true, 'type': true, 'account': true };
+    return { 'category': true, 'type': true, 'account': true, 'location_ref': true };
   }
   if (model === 'bill_payments') {
     return { bill: true, transaction: true };
@@ -73,6 +73,7 @@ const models = [
   'bills',
   'bill_payments',
   'categories',
+  'locations',
   'settings',
   'snapshots',
   'transaction_types',
@@ -94,7 +95,6 @@ app.post(`/transfers`, async (req, res) => {
     origin_account_id,
     destination_account_id,
     concept,
-    location,
   } = req.body;
 
   // validar
@@ -119,7 +119,6 @@ app.post(`/transfers`, async (req, res) => {
         date: transferDate,
         amount,
         transfer_group: transferGroup,
-        location: location || null,
         account: {
           connect: { id: origin_account_id }
         },
@@ -137,7 +136,6 @@ app.post(`/transfers`, async (req, res) => {
         date: transferDate,
         amount,
         transfer_group: transferGroup,
-        location: location || null,
         account: {
           connect: { id: destination_account_id }
         },

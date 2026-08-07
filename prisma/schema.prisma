@@ -56,19 +56,21 @@ model transactions {
   category_id    String?           @db.Uuid
   type_id        String            @db.Uuid
   transfer_group String?
-  location       String?
+  location_id    String?           @db.Uuid
   created_at     DateTime          @default(now())
   updated_at     DateTime          @default(now())
   deleted_at     DateTime?
   account        accounts          @relation(fields: [account_id], references: [id])
   category       categories?       @relation(fields: [category_id], references: [id])
   type           transaction_types @relation(fields: [type_id], references: [id])
+  location_ref   locations?        @relation(fields: [location_id], references: [id])
 
   bill_payments  bill_payments[]
 
   @@index([account_id], map: "idx_transactions_account")
   @@index([date], map: "idx_transactions_date")
   @@index([transfer_group])
+  @@index([location_id])
 }
 
 model assets {
@@ -171,6 +173,17 @@ model settings {
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_at DateTime? @default(now()) @db.Timestamp(6)
   deleted_at DateTime? @db.Timestamp(6)
+}
+
+model locations {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  latitude     Decimal?       @db.Decimal
+  longitude    Decimal?       @db.Decimal
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @default(now())
+  deleted_at   DateTime?
+  transactions transactions[]
 }
 
 model transaction_types {
