@@ -178,7 +178,6 @@ model settings {
 model shopping_items {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String
-  quantity   String?
   is_done    Boolean   @default(false)
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now())
