@@ -75,6 +75,7 @@ const models = [
   'categories',
   'locations',
   'settings',
+  'shopping_items',
   'snapshots',
   'transaction_types',
   'transactions'

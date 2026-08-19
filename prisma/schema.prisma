@@ -175,6 +175,16 @@ model settings {
   deleted_at DateTime? @db.Timestamp(6)
 }
 
+model shopping_items {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  quantity   String?
+  is_done    Boolean   @default(false)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  deleted_at DateTime?
+}
+
 model locations {
   id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
