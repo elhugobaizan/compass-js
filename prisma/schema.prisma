@@ -177,8 +177,10 @@ model settings {
 
 model shopping_items {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  is_done    Boolean   @default(false)
+  name         String
+  is_done      Boolean   @default(false)
+  /// Producto habitual: al terminar la compra vuelve a pendiente en vez de borrarse
+  is_recurring Boolean   @default(false)
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now())
   deleted_at DateTime?
