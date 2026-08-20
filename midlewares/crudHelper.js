@@ -26,6 +26,36 @@ export function generateUltimateCRUDRouter(modelName, options) {
 
   const schema = options?.zodSchema || makeZodSchema(modelFields, options?.protectFields || []);
 
+  // Los ids son enteros, pero llegan como string (params de URL y <select> del front).
+  // Se normalizan acá, en el borde, para que nada aguas adentro compare "5" contra 5.
+  const idFields = modelFields.filter((f) => f === "id" || f.endsWith("_id"));
+
+  const parseId = (raw) => {
+    const n = Number(raw);
+    return Number.isInteger(n) ? n : null;
+  };
+
+  const coerceIds = (data) => {
+    const out = { ...data };
+    for (const field of idFields) {
+      if (out[field] === undefined || out[field] === null || out[field] === "") continue;
+      const n = parseId(out[field]);
+      if (n !== null) out[field] = n;
+    }
+    return out;
+  };
+
+  // settings se direcciona por `key` (string), el resto por id numérico
+  const requireId = (req, res) => {
+    if (modelName === "settings") return req.params.id;
+    const id = parseId(req.params.id);
+    if (id === null) {
+      res.status(400).json({ error: `id inválido: ${req.params.id}` });
+      return null;
+    }
+    return id;
+  };
+
   const handleError = (res, action, err) => {
     console.error(`Error al ${action} ${modelName}:`, err);
     res.status(500).json({
@@ -104,8 +134,10 @@ export function generateUltimateCRUDRouter(modelName, options) {
   // GET /model/:id
   router.get("/:id", async (req, res) => {
     console.log(`Read ${modelName} with id ${req.params.id}`);
+    const id = requireId(req, res);
+    if (id === null) return;
     try {
-      const data = await model.findUnique({ where: { id: req.params.id }, include: options?.include });
+      const data = await model.findUnique({ where: { id }, include: options?.include });
       if (!data) return res.status(404).json({ error: "Not found" });
       console.log(`${modelName} with id ${data.id} found`);
       res.json(data);
@@ -120,7 +152,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json(parsed.error.format());
     try {
-      const created = await model.create({ data: parsed.data });
+      const created = await model.create({ data: coerceIds(parsed.data) });
       console.log(`${modelName} created with id ${created.id}`);
       res.json(created);
     } catch (err) {
@@ -131,8 +163,11 @@ export function generateUltimateCRUDRouter(modelName, options) {
   // PATCH /model/:id
   router.patch("/:id", async (req, res) => {
     console.log(`Read ${modelName} with id ${req.params.id}`);
-    const parsed = schema.partial().safeParse(req.body);
-    if (!parsed.success) return res.status(400).json(parsed.error.format());
+    const parsedRaw = schema.partial().safeParse(req.body);
+    if (!parsedRaw.success) return res.status(400).json(parsedRaw.error.format());
+    const parsed = { data: coerceIds(parsedRaw.data) };
+    const id = requireId(req, res);
+    if (id === null) return;
     try {
       const now = new Date();
       // settings se identifica por `key` (no es campo unique), así que usamos updateMany + findFirst
@@ -157,7 +192,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
       // solo debe avanzar cuando cambia el opening_balance (no al editar TNA, nombre, etc.)
       let touchUpdatedAt = true;
       if (modelName === "accounts") {
-        const current = await model.findUnique({ where: { id: req.params.id } });
+        const current = await model.findUnique({ where: { id } });
         const incoming = parsed.data.opening_balance;
         const balanceChanged =
           incoming !== undefined && Number(incoming) !== Number(current?.opening_balance);
@@ -168,7 +203,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
         ? { ...parsed.data, updated_at: now }
         : { ...parsed.data };
 
-      const updated = await model.update({ where: { id: req.params.id }, data });
+      const updated = await model.update({ where: { id }, data });
       console.log(`updated_at returned by Prisma: ${updated.updated_at?.toISOString?.() ?? updated.updated_at}`);
       console.log(`${modelName} with id ${updated.id} updated`);
       res.json(updated);
@@ -180,12 +215,14 @@ export function generateUltimateCRUDRouter(modelName, options) {
   // DELETE /model/:id
   router.delete("/:id", async (req, res) => {
     console.log(`Delete ${modelName} with id ${req.params.id}`);
+    const id = requireId(req, res);
+    if (id === null) return;
     try {
       if (modelName === 'accounts') {
         console.log('Checking if the account has assets...');
         const assets = await prisma.assets.count({
           where: {
-            account_id: req.params.id
+            account_id: id
           }
         })
         if (assets > 0) {
@@ -194,7 +231,7 @@ export function generateUltimateCRUDRouter(modelName, options) {
         }
       }
       const deleted = await model.update({
-        where: { id: req.params.id },
+        where: { id },
         data: {
           deleted_at: new Date(),
         },

@@ -7,10 +7,10 @@ datasource db {
 }
 
 model accounts {
-  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                Int            @id @default(autoincrement())
   name              String
   account_type      String
-  account_group_id  String         @db.Uuid
+  account_group_id  Int
   currency          String         @default("ARS")
   institution       String?
   identifier        String?
@@ -25,8 +25,8 @@ model accounts {
   updated_at        DateTime?      @db.Timestamp(6)
   deleted_at        DateTime?
   account_group     account_groups @relation(fields: [account_group_id], references: [id])
-  assets            assets[] @relation("AssetAccount")
-  origin_assets     assets[] @relation("AssetOriginAccount")
+  assets            assets[]       @relation("AssetAccount")
+  origin_assets     assets[]       @relation("AssetOriginAccount")
   bills             bills[]
   transactions      transactions[]
 
@@ -35,7 +35,7 @@ model accounts {
 }
 
 model categories {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           Int            @id @default(autoincrement())
   name         String
   type         String
   created_at   DateTime       @default(now())
@@ -48,15 +48,15 @@ model categories {
 }
 
 model transactions {
-  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id             Int               @id @default(autoincrement())
   concept        String?
   date           DateTime
   amount         Decimal           @db.Decimal
-  account_id     String            @db.Uuid
-  category_id    String?           @db.Uuid
-  type_id        String            @db.Uuid
+  account_id     Int
+  category_id    Int?
+  type_id        Int
   transfer_group String?
-  location_id    String?           @db.Uuid
+  location_id    Int?
   created_at     DateTime          @default(now())
   updated_at     DateTime          @default(now())
   deleted_at     DateTime?
@@ -65,7 +65,7 @@ model transactions {
   type           transaction_types @relation(fields: [type_id], references: [id])
   location_ref   locations?        @relation(fields: [location_id], references: [id])
 
-  bill_payments  bill_payments[]
+  bill_payments bill_payments[]
 
   @@index([account_id], map: "idx_transactions_account")
   @@index([date], map: "idx_transactions_date")
@@ -74,49 +74,49 @@ model transactions {
 }
 
 model assets {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id         String    @db.Uuid
-  origin_account_id  String?   @db.Uuid
-  name               String
-  symbol             String?
-  asset_type         String
-  quantity           Decimal?  @db.Decimal
-  price              Decimal?  @db.Decimal
-  capital            Decimal?  @db.Decimal
-  interest           Decimal?  @db.Decimal
-  start_date         DateTime? @db.Date
-  maturity           DateTime? @db.Date
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @default(now())
-  deleted_at         DateTime?
-  account            accounts  @relation("AssetAccount", fields: [account_id], references: [id])
-  origin_account     accounts? @relation("AssetOriginAccount", fields: [origin_account_id], references: [id])
+  id                Int       @id @default(autoincrement())
+  account_id        Int
+  origin_account_id Int?
+  name              String
+  symbol            String?
+  asset_type        String
+  quantity          Decimal?  @db.Decimal
+  price             Decimal?  @db.Decimal
+  capital           Decimal?  @db.Decimal
+  interest          Decimal?  @db.Decimal
+  start_date        DateTime? @db.Date
+  maturity          DateTime? @db.Date
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now())
+  deleted_at        DateTime?
+  account           accounts  @relation("AssetAccount", fields: [account_id], references: [id])
+  origin_account    accounts? @relation("AssetOriginAccount", fields: [origin_account_id], references: [id])
 
   @@index([account_id], map: "idx_assets_account")
   @@index([asset_type])
 }
 
 model bills {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                String
-  provider            String?
-  due_day             Int?
-  default_amount      Decimal?        @db.Decimal
-  account_id          String?         @db.Uuid
-  category_id         String?         @db.Uuid
-  customer_number     String?
-  reference_number    String?
-  notes               String?
-  logo                String?
-  url                 String?
-  is_active           Boolean         @default(true)
-  created_at          DateTime        @default(now())
-  updated_at          DateTime        @default(now())
-  deleted_at          DateTime?
+  id               Int       @id @default(autoincrement())
+  name             String
+  provider         String?
+  due_day          Int?
+  default_amount   Decimal?  @db.Decimal
+  account_id       Int?
+  category_id      Int?
+  customer_number  String?
+  reference_number String?
+  notes            String?
+  logo             String?
+  url              String?
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @default(now())
+  deleted_at       DateTime?
 
-  account             accounts?       @relation(fields: [account_id], references: [id])
-  category            categories?     @relation(fields: [category_id], references: [id])
-  bill_payments       bill_payments[]
+  account       accounts?       @relation(fields: [account_id], references: [id])
+  category      categories?     @relation(fields: [category_id], references: [id])
+  bill_payments bill_payments[]
 
   @@index([account_id])
   @@index([category_id])
@@ -124,23 +124,23 @@ model bills {
 }
 
 model bill_payments {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bill_id         String        @db.Uuid
+  id              Int       @id @default(autoincrement())
+  bill_id         Int
   year            Int
   month           Int
-  due_date        DateTime?     @db.Date
-  expected_amount Decimal?      @db.Decimal
-  paid_amount     Decimal?      @db.Decimal
+  due_date        DateTime? @db.Date
+  expected_amount Decimal?  @db.Decimal
+  paid_amount     Decimal?  @db.Decimal
   paid_at         DateTime?
-  status          String        @default("pending")
-  transaction_id  String?       @db.Uuid
+  status          String    @default("pending")
+  transaction_id  Int?
   notes           String?
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @default(now())
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
   deleted_at      DateTime?
 
-  bill            bills         @relation(fields: [bill_id], references: [id])
-  transaction     transactions? @relation(fields: [transaction_id], references: [id])
+  bill        bills         @relation(fields: [bill_id], references: [id])
+  transaction transactions? @relation(fields: [transaction_id], references: [id])
 
   @@unique([bill_id, year, month])
   @@index([status])
@@ -150,7 +150,7 @@ model bill_payments {
 }
 
 model snapshots {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            Int       @id @default(autoincrement())
   year          Int
   month         Int
   period        String?
@@ -167,7 +167,7 @@ model snapshots {
 }
 
 model settings {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         Int       @id @default(autoincrement())
   key        String
   value      Decimal?  @db.Decimal
   created_at DateTime? @default(now()) @db.Timestamp(6)
@@ -176,18 +176,18 @@ model settings {
 }
 
 model shopping_items {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           Int       @id @default(autoincrement())
   name         String
   is_done      Boolean   @default(false)
   /// Producto habitual: al terminar la compra vuelve a pendiente en vez de borrarse
   is_recurring Boolean   @default(false)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now())
-  deleted_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @default(now())
+  deleted_at   DateTime?
 }
 
 model locations {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           Int            @id @default(autoincrement())
   name         String
   latitude     Decimal?       @db.Decimal
   longitude    Decimal?       @db.Decimal
@@ -198,13 +198,13 @@ model locations {
 }
 
 model transaction_types {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           Int            @id @default(autoincrement())
   name         String
   transactions transactions[]
 }
 
 model account_groups {
-  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id       Int        @id @default(autoincrement())
   name     String     @db.VarChar
   accounts accounts[]
 }

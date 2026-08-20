@@ -89,6 +89,11 @@ models.forEach(model => {
   }));
 });
 
+// Ids fijos de catálogo (tablas transaction_types / categories)
+const TYPE_TRANSFERENCIA_ENTRADA = 3;
+const TYPE_TRANSFERENCIA_SALIDA = 4;
+const CATEGORY_VARIOS = 7;
+
 app.post(`/transfers`, async (req, res) => {
   const {
     amount,
@@ -121,13 +126,13 @@ app.post(`/transfers`, async (req, res) => {
         amount,
         transfer_group: transferGroup,
         account: {
-          connect: { id: origin_account_id }
+          connect: { id: Number(origin_account_id) }
         },
         category: {
-          connect: { id: "ec2949e0-30ae-41f4-9253-db126957f2ae" }
+          connect: { id: CATEGORY_VARIOS }
         },
         type: {
-          connect: { id: "1e49a6a7-3519-4e5b-aa4b-62a4d11a7a11" }
+          connect: { id: TYPE_TRANSFERENCIA_SALIDA }
         }
       },
     }),
@@ -138,13 +143,13 @@ app.post(`/transfers`, async (req, res) => {
         amount,
         transfer_group: transferGroup,
         account: {
-          connect: { id: destination_account_id }
+          connect: { id: Number(destination_account_id) }
         },
         category: {
-          connect: { id: "ec2949e0-30ae-41f4-9253-db126957f2ae" }
+          connect: { id: CATEGORY_VARIOS }
         },
         type: {
-          connect: { id: "ef0f7192-c4b3-4d7c-88ef-0d451a77baea" }
+          connect: { id: TYPE_TRANSFERENCIA_ENTRADA }
         }
       },
     })
